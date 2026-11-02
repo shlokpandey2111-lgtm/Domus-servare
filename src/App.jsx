@@ -1,10 +1,18 @@
 import { useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+// 1. SUPABASE JODA
+const supabase = createClient(
+  'https://gmvxitizzzqzmljwlter.supabase.co',
+  'EYJ_WALI_ANON_KEY_YAHAN_DALO' // yahan apni anon key dalo
+);
 
 function App() {
   const [page, setPage] = useState('home');
   const [selectedService, setSelectedService] = useState(null);
   const [address, setAddress] = useState('');
   const [time, setTime] = useState('');
+  const [loading, setLoading] = useState(false); // 2. LOADING ADDED
 
   const services = [
     { id: 1, name: 'AC Repair', price: 499 },
@@ -14,6 +22,33 @@ function App() {
 
   const platformFee = 12;
   const total = selectedService ? selectedService.price + platformFee : 0;
+
+  // 3. BOOKING SAVE + 4. PAST TIME CHECK
+  const handleBooking = async () => {
+    if (!address || !time) return;
+    
+    if (new Date(time) < new Date()) {
+      alert('Past ka time book nahi kar sakte');
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.from('bookings').insert([
+      { 
+        service: selectedService.name, 
+        address: address, 
+        time: time,
+        total_price: total 
+      }
+    ]);
+    setLoading(false);
+
+    if (error) {
+      alert('Error: ' + error.message);
+    } else {
+      setPage('success');
+    }
+  };
 
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '500px', margin: 'auto' }}>
@@ -42,6 +77,7 @@ function App() {
 
           <label>Time Chuno:</label>
           <input type="datetime-local" value={time} onChange={e => setTime(e.target.value)} 
+          min={new Date().toISOString().slice(0,16)}
           style={{ width: '100%', padding: '10px', margin: '10px 0' }} />
 
           <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '10px', marginTop: '15px' }}>
@@ -51,9 +87,9 @@ function App() {
             <h3>Total: Rs. {total}</h3>
           </div>
 
-          <button onClick={() => setPage('success')} disabled={!address || !time}
-          style={{ width: '100%', padding: '15px', background: !address || !time ? 'gray' : 'black', color: 'white', borderRadius: '10px', marginTop: '15px' }}>
-            Rs. {total} Pay Karke Book Karo
+          <button onClick={handleBooking} disabled={!address || !time || loading}
+          style={{ width: '100%', padding: '15px', background: !address || !time || loading ? 'gray' : 'black', color: 'white', borderRadius: '10px', marginTop: '15px' }}>
+            {loading ? 'Booking Ho Rahi Hai...' : `Rs. ${total} Pay Karke Book Karo`}
           </button>
         </div>
       )}
