@@ -1,59 +1,59 @@
 import { useState } from 'react';
-import { getConfig, saveConfig } from './configStore';
+import { getConfig, saveConfig, generateOTP, verifyOTP } from '../configStore';
 
 export default function Admin() {
   const [config, setConfig] = useState(getConfig());
-  const [pass, setPass] = useState('');
-  const [auth, setAuth] = useState(false);
+  const [step, setStep] = useState('MOBILE');
+  const [mobile, setMobile] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newNum, setNewNum] = useState('');
 
-  const login = () => {
-    if (pass === config.adminPassword) {
-      setAuth(true);
-    } else {
-      alert('Galat Password! 1234 hai');
-    }
+  const sendOtp = () => {
+    if (mobile !== config.adminMobile) return alert('ACCESS DENIED - You are not CEO');
+    const code = generateOTP(mobile);
+    alert(`CEO OTP: ${code}`);
+    setStep('OTP');
+  };
+  const verify = () => {
+    if (verifyOTP(mobile, otp)) setStep('DASHBOARD');
+    else alert('Wrong OTP');
   };
 
-  const updatePrice = (serviceName, newPrice) => {
-    const updated = { ...config.services };
-    updated[serviceName] = Number(newPrice);
-    setConfig({ ...config, services: updated });
-  };
-
-  const save = () => {
-    saveConfig(config);
-    alert('Done! Price Live Ho Gaya');
-  };
-
-  if (!auth) {
+  if (step !== 'DASHBOARD') {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a' }}>
-        <div style={{ background: 'white', padding: '30px', borderRadius: '20px', width: '350px' }}>
-          <h2>CEO LOGIN</h2>
-          <input type="password" placeholder="Password = 1234" value={pass} onChange={(e) => setPass(e.target.value)} style={{ width: '100%', padding: '12px', marginTop: '15px', borderRadius: '10px' }} />
-          <button onClick={login} style={{ width: '100%', padding: '12px', marginTop: '10px', background: 'black', color: 'white', borderRadius: '10px' }}>LOGIN</button>
+      <div style={{ minHeight:'100vh', background:'#000', display:'flex', justifyContent:'center', alignItems:'center' }}>
+        <div style={{ background:'#0a0a0a', border:'1px solid #1a1a1a', padding:32, borderRadius:20, width:360, color:'white' }}>
+          <h2 style={{ fontWeight:900 }}>CEO PRIVATE ACCESS</h2>
+          <p style={{ fontSize:11, opacity:0.4 }}>This page is not indexed. Only owner can login.</p>
+          {step==='MOBILE' && <>
+            <input value={mobile} onChange={e=>setMobile(e.target.value)} placeholder="CEO Mobile Only" style={{ width:'100%', padding:14, background:'black', border:'1px solid #333', color:'white', borderRadius:10, marginTop:15 }} />
+            <button onClick={sendOtp} style={{ width:'100%', padding:14, marginTop:10, background:'white', color:'black', fontWeight:800, borderRadius:10 }}>SEND OTP</button>
+          </>}
+          {step==='OTP' && <>
+            <input value={otp} onChange={e=>setOtp(e.target.value)} placeholder="Enter OTP" style={{ width:'100%', padding:14, background:'black', border:'1px solid #333', color:'white', borderRadius:10, marginTop:15 }} />
+            <button onClick={verify} style={{ width:'100%', padding:14, marginTop:10, background:'white', color:'black', fontWeight:800, borderRadius:10 }}>VERIFY</button>
+          </>}
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px' }}>
-      <h1>CEO DASHBOARD</h1>
-      <div style={{ background: '#f1f5f9', padding: '20px', borderRadius: '16px', marginTop: '20px' }}>
-        <h3>Platform Fee (Tera Profit)</h3>
-        <input type="number" value={config.platformFee} onChange={(e) => setConfig({ ...config, platformFee: Number(e.target.value) })} style={{ width: '100%', padding: '14px', borderRadius: '10px' }} />
+    <div style={{ padding:20, background:'#f5f5f5', minHeight:'100vh' }}>
+      <h1>CEO DASHBOARD - SHLOK</h1>
+      <p>Total Customers: {config.customers.length} | Total Providers: {config.providers.length}</p>
+      <div style={{ background:'white', padding:15, borderRadius:12, marginTop:15 }}>
+        <h3>Change Admin Number</h3>
+        <input value={newNum} onChange={e=>setNewNum(e.target.value)} placeholder="New 10 digit" style={{ padding:10 }} />
+        <button onClick={()=>{ if(newNum.length===10){ const c={...config, adminMobile:newNum}; saveConfig(c); setConfig(c); alert('Updated'); } }} style={{ padding:10, background:'black', color:'white', marginLeft:5 }}>UPDATE</button>
       </div>
-      <div style={{ marginTop: '30px' }}>
-        <h3>Service Price</h3>
-        {Object.keys(config.services).map((s) => (
-          <div key={s} style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid #eee' }}>
-            <span>{s}</span>
-            <input type="number" value={config.services[s]} onChange={(e) => updatePrice(s, e.target.value)} style={{ width: '120px', padding: '10px', borderRadius: '8px', border: '2px solid black' }} />
-          </div>
+      <div style={{ background:'white', padding:15, borderRadius:12, marginTop:15 }}>
+        <h3>Prices</h3>
+        {Object.entries(config.services).map(([k,v])=>(
+          <div key={k}>{k}: <input type="number" value={v} onChange={e=>setConfig({...config, services:{...config.services, [k]:Number(e.target.value)}})} /></div>
         ))}
+        <button onClick={()=>{ saveConfig(config); alert('LIVE!'); }} style={{ width:'100%', padding:12, background:'green', color:'white', marginTop:10 }}>SAVE LIVE</button>
       </div>
-      <button onClick={save} style={{ width: '100%', padding: '16px', marginTop: '30px', background: '#16a34a', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '900' }}>SAVE & PUBLISH LIVE</button>
     </div>
   );
-      }
+}
