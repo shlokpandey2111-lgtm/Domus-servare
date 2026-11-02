@@ -12,7 +12,7 @@ export const getConfig = () => {
       "Baby Sitting": 5000
     },
     platformFee: 99,
-    adminPassword: '1234'
+    adminPassword: 'Shlok@2008'
   };
 };
 
