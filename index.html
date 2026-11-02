@@ -1,2 +1,19 @@
 <!DOCTYPE html>
-<html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Domus Servare</title><link rel="manifest" href="public/manifest.json" /><meta name="theme-color" content="#0f172a" /></head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script><script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/public/sw.js')})}</script></body></html>
+<html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Domus Servare</title><link rel="manifest" href="/manifest.json" /><meta name="theme-color" content="#0f172a" />
+<style>
+#installBox{display:none;position:fixed;bottom:20px;left:10px;right:10px;background:#111827;color:white;padding:16px;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.3);z-index:9999;font-family:sans-serif;align-items:center;justify-content:space-between}
+#installBox button{background:white;color:black;border:none;padding:10px 18px;border-radius:20px;font-weight:bold}
+</style>
+</head><body><div id="root"></div>
+<div id="installBox">
+  <div><b>Domus Servare</b><br><small style="opacity:0.7">App install karein?</small></div>
+  <button id="installBtn">Install</button>
+</div>
+<script type="module" src="/src/main.jsx"></script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js')})}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBox').style.display='flex';});
+document.getElementById('installBtn').addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();const r=await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBox').style.display='none';}});
+</script>
+</body></html>
