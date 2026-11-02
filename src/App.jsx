@@ -1,54 +1,77 @@
-import { useState } from "react"
+import { useState } from 'react';
 
-const INIT = {
-  platformFee: 12,
-  radiusKm: 10,
-  city: "Patti, Pratapgarh",
-  services: [
-    { id: 201, name: "Jhadu Pocha Dai", price: 199, icon: "🧹", time: "60 min" },
-    { id: 202, name: "Full Home Cleaning 1BHK", price: 399, icon: "🏠", time: "120 min" },
-    { id: 101, name: "Cook One Time", price: 249, icon: "🍳", time: "90 min" },
-    { id: 301, name: "Electrician", price: 199, icon: "⚡", time: "45 min" },
-  ]
-}
+function App() {
+  const [page, setPage] = useState('home');
+  const [selectedService, setSelectedService] = useState(null);
+  const [address, setAddress] = useState('');
+  const [time, setTime] = useState('');
 
-export default function App() {
-  const [role, setRole] = useState(null)
-  const [selected, setSelected] = useState(null)
+  const services = [
+    { id: 1, name: 'AC Repair', price: 499 },
+    { id: 2, name: 'Plumber', price: 299 },
+    { id: 3, name: 'Electrician', price: 249 },
+  ];
 
-  if (!role) {
-    return (
-      <div style={{minHeight:'100vh', background:'#f5f7ff', padding:20, fontFamily:'system-ui'}}>
-        <div style={{background:'white', padding:14, borderRadius:16, display:'flex', justifyContent:'space-between'}}>
-          <b>Domus Servare Bharat V2.0</b>
-          <span style={{fontSize:12, opacity:0.7}}>{INIT.city}</span>
-        </div>
-        <h1 style={{marginTop:24, fontSize:32, fontWeight:900}}>नमस्ते! 👋</h1>
-        <p>Best services in {INIT.city} - {INIT.radiusKm}km radius</p>
-        <div style={{marginTop:24, display:'grid', gap:12}}>
-          <button onClick={()=>setRole('customer')} style={{padding:20, borderRadius:18, border:'none', background:'black', color:'white', fontWeight:700}}>👤 ग्राहक - सेवा बुक करो</button>
-          <button onClick={()=>setRole('provider')} style={{padding:20, borderRadius:18, border:'1px solid #ddd', background:'white', fontWeight:700}}>👷‍♂️ प्रोवाइडर - काम लो</button>
-        </div>
-        <div style={{marginTop:20, background:'white', padding:12, borderRadius:12, fontSize:12, opacity:0.6}}>
-          Platform Fee: ₹{INIT.platformFee} | Radius: {INIT.radiusKm}km
-        </div>
-      </div>
-    )
-  }
+  const platformFee = 12;
+  const total = selectedService ? selectedService.price + platformFee : 0;
 
   return (
-    <div style={{minHeight:'100vh', background:'#f5f7ff', padding:16, fontFamily:'system-ui'}}>
-      <button onClick={()=>setRole(null)} style={{border:'none', background:'white', padding:'8px 14px', borderRadius:20}}>← Back</button>
-      <h2 style={{marginTop:12}}>Services in {INIT.city}</h2>
-      <div style={{display:'grid', gap:12, marginTop:12}}>
-        {INIT.services.map(s=>(
-          <div key={s.id} onClick={()=>setSelected(s)} style={{background:'white', padding:16, borderRadius:16, display:'flex', justifyContent:'space-between', boxShadow:'0 1px 6px #0001'}}>
-            <div style={{display:'flex', gap:12, alignItems:'center'}}><span style={{fontSize:28}}>{s.icon}</span><div><b>{s.name}</b><div style={{fontSize:12, opacity:0.6}}>{s.time}</div></div></div>
-            <b>₹{s.price}</b>
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '500px', margin: 'auto' }}>
+      <h1 style={{ textAlign: 'center' }}>Domus Servare Bharat</h1>
+
+      {page === 'home' && (
+        <>
+          <h2>Service Chuno:</h2>
+          {services.map(s => (
+            <div key={s.id} onClick={() => { setSelectedService(s); setPage('booking'); }} 
+            style={{ border: '1px solid #ddd', padding: '15px', margin: '10px 0', borderRadius: '10px', cursor: 'pointer' }}>
+              <b>{s.name}</b> - Rs. {s.price}
+            </div>
+          ))}
+        </>
+      )}
+
+      {page === 'booking' && selectedService && (
+        <div>
+          <button onClick={() => setPage('home')} style={{ marginBottom: '15px' }}>Wapas</button>
+          <h2>Booking: {selectedService.name}</h2>
+          
+          <label>Apna Address Likho:</label>
+          <textarea value={address} onChange={e => setAddress(e.target.value)} placeholder="Ghar no, gali, Patti..." 
+          style={{ width: '100%', padding: '10px', margin: '10px 0', minHeight: '80px' }} />
+
+          <label>Time Chuno:</label>
+          <input type="datetime-local" value={time} onChange={e => setTime(e.target.value)} 
+          style={{ width: '100%', padding: '10px', margin: '10px 0' }} />
+
+          <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '10px', marginTop: '15px' }}>
+            <p>Service Price: Rs. {selectedService.price}</p>
+            <p>Platform Fee: Rs. {platformFee}</p>
+            <hr/>
+            <h3>Total: Rs. {total}</h3>
           </div>
-        ))}
-      </div>
-      {selected && <div style={{marginTop:16, background:'#4f46e5', color:'white', padding:16, borderRadius:16, textAlign:'center'}}><b>{selected.name} booked!</b><div style={{fontSize:12, opacity:0.9, marginTop:4}}>Platform fee ₹{INIT.platformFee} included</div></div>}
+
+          <button onClick={() => setPage('success')} disabled={!address || !time}
+          style={{ width: '100%', padding: '15px', background: !address || !time ? 'gray' : 'black', color: 'white', borderRadius: '10px', marginTop: '15px' }}>
+            Rs. {total} Pay Karke Book Karo
+          </button>
+        </div>
+      )}
+
+      {page === 'success' && (
+        <div style={{ textAlign: 'center', marginTop: '50px' }}>
+          <h1 style={{ fontSize: '60px' }}>✅</h1>
+          <h2>Booking Ho Gayi!</h2>
+          <p>{selectedService?.name}</p>
+          <p>{address}</p>
+          <p>{time}</p>
+          <button onClick={() => { setPage('home'); setAddress(''); setTime(''); setSelectedService(null); }} style={{ marginTop: '20px', padding: '10px 20px' }}>
+            Nayi Booking Karo
+          </button>
+        </div>
+      )}
     </div>
-  )
+  );
 }
+
+export default App;
